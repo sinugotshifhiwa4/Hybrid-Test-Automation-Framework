@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.hybridframework.utils.dynamicWaits.ExplicitWaitUtils.getWebDriverWait;
@@ -260,41 +261,6 @@ public class BasePage {
         }
     }
 
-    public void acceptAlert() {
-        try {
-            getWebDriverWait().until(ExpectedConditions.alertIsPresent()).accept();
-        } catch (Exception error) {
-            ErrorHandler.logError(error, "acceptAlert", "Failed to accept alert");
-            throw error;
-        }
-    }
-
-    public void dismissAlert() {
-        try {
-            getWebDriverWait().until(ExpectedConditions.alertIsPresent()).dismiss();
-        } catch (Exception error) {
-            ErrorHandler.logError(error, "dismissAlert", "Failed to dismiss alert");
-            throw error;
-        }
-    }
-
-    public String getAlertText() {
-        try {
-            return getWebDriverWait().until(ExpectedConditions.alertIsPresent()).getText();
-        } catch (Exception error) {
-            ErrorHandler.logError(error, "getAlertText", "Failed to retrieve alert text");
-            throw error;
-        }
-    }
-
-    public void sendKeysToAlert(String text) {
-        try {
-            getWebDriverWait().until(ExpectedConditions.alertIsPresent()).sendKeys(text);
-        } catch (Exception error) {
-            ErrorHandler.logError(error, "sendKeysToAlert", "Failed to send keys to alert");
-            throw error;
-        }
-    }
 
     public void waitForModalToBeVisible(WebElement modalElement) {
         try {
@@ -338,6 +304,33 @@ public class BasePage {
             getWebDriverWait().until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(iframeElement));
         } catch (Exception error) {
             ErrorHandler.logError(error, "switchToIframe", "Failed to switch to iframe.");
+            throw error;
+        }
+    }
+
+    public void switchToWindow(String windowHandle) {
+        try {
+            if (windowHandle == null || windowHandle.isEmpty()) {
+                ErrorHandler.logError(new IllegalArgumentException("Invalid window handle provided"),
+                        "switchToWindow", "Invalid window handle: " + windowHandle);
+                return;
+            }
+
+            Set<String> windowHandles = driver.getWindowHandles();
+            if (!windowHandles.contains(windowHandle)) {
+                ErrorHandler.logError(new NoSuchWindowException("Window handle not found: " + windowHandle),
+                        "switchToWindow", "Window handle not found: " + windowHandle);
+                return;
+            }
+
+            driver.switchTo().window(windowHandle);
+            logger.info("Switched to window successfully: {}", windowHandle);
+
+        } catch (NoSuchWindowException error) {
+            ErrorHandler.logError(error, "switchToWindow", "No such window exists: " + windowHandle);
+            throw error;
+        } catch (Exception error) {
+            ErrorHandler.logError(error, "switchToWindow", "Failed to switch to window: " + windowHandle);
             throw error;
         }
     }
@@ -399,6 +392,42 @@ public class BasePage {
             uploadElement.sendKeys(filePath);
         } catch (Exception error) {
             ErrorHandler.logError(error, "uploadFile", "Failed to upload file");
+            throw error;
+        }
+    }
+
+    public void acceptAlert() {
+        try {
+            getWebDriverWait().until(ExpectedConditions.alertIsPresent()).accept();
+        } catch (Exception error) {
+            ErrorHandler.logError(error, "acceptAlert", "Failed to accept alert");
+            throw error;
+        }
+    }
+
+    public void dismissAlert() {
+        try {
+            getWebDriverWait().until(ExpectedConditions.alertIsPresent()).dismiss();
+        } catch (Exception error) {
+            ErrorHandler.logError(error, "dismissAlert", "Failed to dismiss alert");
+            throw error;
+        }
+    }
+
+    public String getAlertText() {
+        try {
+            return getWebDriverWait().until(ExpectedConditions.alertIsPresent()).getText();
+        } catch (Exception error) {
+            ErrorHandler.logError(error, "getAlertText", "Failed to retrieve alert text");
+            throw error;
+        }
+    }
+
+    public void sendKeysToAlert(String text) {
+        try {
+            getWebDriverWait().until(ExpectedConditions.alertIsPresent()).sendKeys(text);
+        } catch (Exception error) {
+            ErrorHandler.logError(error, "sendKeysToAlert", "Failed to send keys to alert");
             throw error;
         }
     }
