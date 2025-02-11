@@ -21,6 +21,7 @@ public class DriverFactory {
 
     public WebDriver getDriver() {
         try {
+            logger.info("Retrieved WebDriver instance");
             return threadLocalDriver.get();
         } catch (Exception error) {
             ErrorHandler.logError(error, "getDriver", "Failed to get driver");
@@ -32,6 +33,7 @@ public class DriverFactory {
         try {
             threadLocalDriver.set(driver);
             configureDriver();
+            logger.info("WebDriver instance setup was successful: {}", driver);
         } catch (Exception error) {
             ErrorHandler.logError(error, "setDriver", "Failed to set driver");
             throw error;
@@ -59,6 +61,7 @@ public class DriverFactory {
     public void navigateToUrl(String url) {
         try{
             getDriver().get(url);
+            logger.info("Navigated to URL: {}", url);
         } catch (Exception error){
             ErrorHandler.logError(error, "navigateToUrl", "Failed to navigate to url");
             throw error;

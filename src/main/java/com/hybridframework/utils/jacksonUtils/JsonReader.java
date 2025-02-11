@@ -10,25 +10,24 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
 
-public class JsonDataReader {
+public class JsonReader {
 
-    private static final Logger logger = LoggerUtils.getLogger(JsonDataReader.class);
+    private static final Logger logger = LoggerUtils.getLogger(JsonReader.class);
     private final JsonNode jsonData;
 
     /**
-     * Constructs a JsonDataReader with the specified file path.
+     * Constructs a JsonReader with the specified file path.
      *
      * @param filePath the path to the JSON file
      * @throws JsonDataReaderException if the JSON file cannot be loaded
      */
-    public JsonDataReader(String filePath) {
+    public JsonReader(String filePath) {
         this.jsonData = loadJson(filePath);
     }
 
     private static JsonNode loadJson(String filePath) {
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.readTree(new File(filePath));
+            return JsonConverter.getObjectMapper().readTree(new File(filePath));
         } catch (IOException error) {
             ErrorHandler.logError(error, "loadJson", "Failed to load json file");
             throw new JsonDataReaderException("Failed to load JSON file: " + filePath, error);

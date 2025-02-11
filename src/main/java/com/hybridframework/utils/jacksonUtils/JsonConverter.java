@@ -6,10 +6,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-public class JsonDataConverter {
+import java.util.Objects;
+
+public class JsonConverter {
 
     // Initialize ObjectMapper
     private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    private JsonConverter() {}
 
     /**
      * Initialize the ObjectMapper with some commonly used features.
@@ -20,13 +24,20 @@ public class JsonDataConverter {
      *     <li>Configures the mapper to not write dates as timestamps</li>
      *     <li>Sets the serialization inclusion to {@link JsonInclude.Include#NON_NULL} to exclude null fields</li>
      * </ul>
-     * @return the configured ObjectMapper
      */
-    public static ObjectMapper initJsonMapper() {
-        objectMapper.registerModule(new JavaTimeModule());
+    public static void initJsonMapper() {
+        Objects.requireNonNull(objectMapper).registerModule(new JavaTimeModule());
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    }
+
+    /**
+     * Gets the shared ObjectMapper instance.
+     *
+     * @return the configured ObjectMapper
+     */
+    public static ObjectMapper getObjectMapper() {
         return objectMapper;
     }
 

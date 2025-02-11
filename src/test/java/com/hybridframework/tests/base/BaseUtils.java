@@ -7,7 +7,7 @@ import com.hybridframework.config.properties.PropertiesConfigManager;
 import com.hybridframework.config.properties.PropertiesFileAlias;
 import com.hybridframework.config.properties.PropertiesFilePath;
 import com.hybridframework.testDataStorage.TestContextStore;
-import com.hybridframework.utils.jacksonUtils.JsonDataConverter;
+import com.hybridframework.utils.jacksonUtils.JsonConverter;
 import com.hybridframework.utils.logging.ErrorHandler;
 
 import java.nio.file.Files;
@@ -57,6 +57,6 @@ public class BaseUtils {
 
     public static void initializeJsonMapper() {
         // Initialize ObjectMapper
-        JsonDataConverter.initJsonMapper();
+        JsonConverter.initJsonMapper();
     }
 }

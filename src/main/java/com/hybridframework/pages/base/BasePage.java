@@ -30,14 +30,20 @@ public class BasePage {
 
     private static final Logger logger = LoggerUtils.getLogger(BasePage.class);
     private static final String SCREENSHOT_DIRECTORY = "SCREENSHOT_DIR";
-    protected final WebDriver driver;
-    protected final Actions actions;
-    protected final JavascriptExecutor js;
+    protected WebDriver driver;
+    protected Actions actions;
+    protected JavascriptExecutor js;
 
-    public BasePage() {
-        this.driver = DriverFactory.getInstance().getDriver();
-        this.actions = new Actions(driver);
-        this.js = (JavascriptExecutor) driver;
+    protected void loadDriverToBasePage() {
+        if (driver == null) {
+            driver = DriverFactory.getInstance().getDriver();
+            if (driver == null) {
+                logger.error("WebDriver has not been initialized in DriverFactory.");
+                throw new IllegalStateException("WebDriver has not been initialized in DriverFactory.");
+            }
+            actions = new Actions(driver);
+            js = (JavascriptExecutor) driver;
+        }
     }
 
     public static boolean isElementVisible(WebElement element) {

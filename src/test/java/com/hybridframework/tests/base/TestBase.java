@@ -1,5 +1,10 @@
 package com.hybridframework.tests.base;
 
+import com.hybridframework.config.properties.PropertiesConfigManager;
+import com.hybridframework.config.properties.PropertiesFileAlias;
+import com.hybridframework.drivers.BrowserFactory;
+import com.hybridframework.drivers.DriverFactory;
+import com.hybridframework.pages.base.BasePage;
 import com.hybridframework.testDataStorage.TestContextStore;
 import com.hybridframework.utils.logging.ErrorHandler;
 import com.hybridframework.utils.logging.LoggerUtils;
@@ -9,10 +14,14 @@ import org.testng.annotations.BeforeClass;
 
 import static com.hybridframework.tests.base.BaseUtils.*;
 
-public class TestBase {
+public class TestBase extends BasePage{
 
     private static final Logger logger = LoggerUtils.getLogger(TestBase.class);
+    private final DriverFactory driverFactory = DriverFactory.getInstance();
+    protected BrowserFactory browserFactory;
     private static final String DEMO_TEST_ID_ONE = "TEST_ONE";
+    private static final String BROWSER = "CHROME_BROWSER";
+    private static final String URL = "PORTAL_BASE_URL";
 
     @BeforeClass(alwaysRun = true)
     public void setup(){
@@ -20,11 +29,28 @@ public class TestBase {
             // Load configs
             loadConfigurations();
 
+            // Initialize browser/driver
+            browserFactory = new BrowserFactory();
+            browserFactory.initializeBrowser(
+                    PropertiesConfigManager.getPropertyKeyFromCache(
+                            PropertiesFileAlias.GLOBAL.getConfigurationAlias(),
+                            BROWSER)
+            );
+
+            // Load driver in Base Page
+            loadDriverToBasePage();
+
             // initialize TestContextStore
             initializeTestDataContext(DEMO_TEST_ID_ONE); // Test Ids to be used for storage during execution
 
             // initialize Json Mapper
             initializeJsonMapper();
+
+            // Navigate to Url
+            driverFactory.navigateToUrl(PropertiesConfigManager.getPropertyKeyFromCache(
+                    PropertiesFileAlias.UAT.getConfigurationAlias(),
+                    URL
+            ));
 
             logger.info("Setup configured successfully");
         } catch (Exception error){
@@ -42,6 +68,8 @@ public class TestBase {
         } catch (Exception error){
             ErrorHandler.logError(error, "tearDown", "Failed to  tear down");
             throw error;
+        } finally {
+            driverFactory.quitDriver();
         }
     }
 }
