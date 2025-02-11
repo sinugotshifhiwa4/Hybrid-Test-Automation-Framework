@@ -35,7 +35,7 @@ public class JsonDataReader {
         }
     }
 
-    public <ConversionType> Optional<ConversionType> getData(String category, String key, Class<ConversionType> type) {
+    private  <ConversionType> Optional<ConversionType> getData(String category, String key, Class<ConversionType> type) {
         try {
             JsonNode node = jsonData.path(category).path(key);
             if (node.isMissingNode() || node.isNull()) {
@@ -58,6 +58,22 @@ public class JsonDataReader {
             return Optional.empty();
         }
     }
+
+    public String getString(String category, String key) {
+        return getData(category, key, String.class)
+                .orElseThrow(() -> new IllegalArgumentException("Missing String value for key: " + key));
+    }
+
+    public int getInt(String category, String key) {
+        return getData(category, key, Integer.class)
+                .orElseThrow(() -> new IllegalArgumentException("Missing int value for key: " + key));
+    }
+
+    public boolean getBoolean(String category, String key) {
+        return getData(category, key, Boolean.class)
+                .orElseThrow(() -> new IllegalArgumentException("Missing boolean value for key: " + key));
+    }
+
 
 
     /**

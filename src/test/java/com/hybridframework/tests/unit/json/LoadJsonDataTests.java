@@ -6,8 +6,6 @@ import com.hybridframework.utils.logging.LoggerUtils;
 import org.apache.logging.log4j.Logger;
 import org.testng.annotations.Test;
 
-import java.util.Optional;
-
 public class LoadJsonDataTests {
 
     private static final Logger logger = LoggerUtils.getLogger(LoadJsonDataTests.class);
@@ -22,11 +20,11 @@ public class LoadJsonDataTests {
         try {
             jsonDataReader = new JsonDataReader(CREDENTIALS_PATH);
 
-            Optional<String> username = jsonDataReader.getData(CREDENTIALS, "Username", String.class);
-            Optional<String> password = jsonDataReader.getData(CREDENTIALS, "Password", String.class);
+            String username = jsonDataReader.getString(CREDENTIALS, "Username");
+            String password = jsonDataReader.getString(CREDENTIALS, "Password");
 
-            username.ifPresent(value -> logger.info("Username: {}", value));
-            password.ifPresent(value -> logger.info("Password: {}", value));
+            logger.info("Username: {}", username);
+            logger.info("Password: {}", password);
 
         } catch (Exception error) {
             ErrorHandler.logError(error, "testLoadJsonData", "Failed to load json data");
@@ -39,22 +37,21 @@ public class LoadJsonDataTests {
         try {
             jsonDataReader = new JsonDataReader(USER_PATH);
 
-            Optional<String> firstName = jsonDataReader.getData(USER, "FirstName", String.class);
-            Optional<String> lastName = jsonDataReader.getData(USER, "LastName", String.class);
-            Optional<String> contact = jsonDataReader.getData(USER, "Contact", String.class);
-            Optional<Integer> postalCode = jsonDataReader.getData(USER, "PostalCode", Integer.class);
-            Optional<Boolean> isRentPaid = jsonDataReader.getData(USER, "IsRentPaid", Boolean.class);
+            String firstName = jsonDataReader.getString(USER, "FirstName");
+            String lastName = jsonDataReader.getString(USER, "LastName");
+            String contact = jsonDataReader.getString(USER, "Contact");
+            int postalCode = jsonDataReader.getInt(USER, "PostalCode");
+            Boolean isRentPaid = jsonDataReader.getBoolean(USER, "IsRentPaid");
 
-            firstName.ifPresent(value -> logger.info("First Name: {}", value));
-            lastName.ifPresent(value -> logger.info("Last Name: {}", value));
-            contact.ifPresent(value -> logger.info("Contact: {}", value));
-            postalCode.ifPresent(value -> logger.info("PostalCode: {}", value));
-            isRentPaid.ifPresent(value -> logger.info("isRentPaid: {}", value));
+            logger.info("First Name: {}", firstName);
+            logger.info("Last Name: {}", lastName);
+            logger.info("Contact: {}", contact);
+            logger.info("PostalCode: {}", postalCode);
+            logger.info("isRentPaid: {}", isRentPaid);
 
         } catch (Exception error) {
             ErrorHandler.logError(error, "testLoadJsonData", "Failed to load json data");
             throw error;
         }
     }
-
 }

@@ -3861,3 +3861,13 @@ java.lang.IndexOutOfBoundsException: Invalid index: 5
 2025-02-11 19:42:47.787 [INFO] [main] [LoadJsonDataTests] - Contact: 0785547852
 2025-02-11 19:42:47.787 [INFO] [main] [LoadJsonDataTests] - PostalCode: 2189
 2025-02-11 19:42:47.787 [INFO] [main] [LoadJsonDataTests] - isRentPaid: true
+2025-02-11 23:42:10.734 [INFO] [main] [Utils] - [TestNG] Running:
+  C:\Users\TshifhiwaSinugo\AppData\Local\JetBrains\Aqua2024.1\temp-testng-customsuite.xml
+
+2025-02-11 23:42:11.020 [INFO] [main] [LoadJsonDataTests] - Username: Admin
+2025-02-11 23:42:11.020 [INFO] [main] [LoadJsonDataTests] - Password: Password@123
+2025-02-11 23:42:11.020 [INFO] [main] [LoadJsonDataTests] - First Name: Tshifhiwa Lunah
+2025-02-11 23:42:11.020 [INFO] [main] [LoadJsonDataTests] - Last Name: Sinugo
+2025-02-11 23:42:11.020 [INFO] [main] [LoadJsonDataTests] - Contact: 0785547852
+2025-02-11 23:42:11.020 [INFO] [main] [LoadJsonDataTests] - PostalCode: 2189
+2025-02-11 23:42:11.020 [INFO] [main] [LoadJsonDataTests] - isRentPaid: true
