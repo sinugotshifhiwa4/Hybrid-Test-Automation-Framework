@@ -6,7 +6,7 @@ import com.hybridframework.utils.logging.ErrorHandler;
 import org.testng.IRetryAnalyzer;
 import org.testng.ITestResult;
 
-public class RerunFailedTestsUtils implements IRetryAnalyzer {
+public class TestRetryAnalyzer implements IRetryAnalyzer {
 
     private static final String MAX_RETRY_COUNT = "MAX_RETRY_COUNT";
     private static final int maxRetryCount = initializeMaxRetryCount();
