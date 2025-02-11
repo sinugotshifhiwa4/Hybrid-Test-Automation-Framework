@@ -12,7 +12,6 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
-import java.util.Optional;
 
 public class ExplicitWaitUtils {
 
@@ -26,8 +25,7 @@ public class ExplicitWaitUtils {
 
     public static WebDriverWait getWebDriverWait() {
         try {
-            Optional<Integer> timeout = getDefaultTimeout();
-            return new WebDriverWait(driverFactory.getDriver(), Duration.ofSeconds(timeout.orElse(60)));
+            return new WebDriverWait(driverFactory.getDriver(), Duration.ofSeconds(getDefaultTimeout()));
         } catch (Exception error) {
             ErrorHandler.logError(error, "getWebDriverWait", "Failed to get WebDriverWait");
             throw error;
@@ -97,14 +95,15 @@ public class ExplicitWaitUtils {
         }
     }
 
-    private static Optional<Integer> getDefaultTimeout() {
+    private static int getDefaultTimeout() {
         try {
             return PropertiesConfigManager
                     .getConfiguration(PropertiesFileAlias.GLOBAL.getConfigurationAlias())
-                    .getProperty(TIMEOUT_KEY, Integer.class);
+                    .getProperty(TIMEOUT_KEY, Integer.class)
+                    .orElse(60);
         } catch (Exception error) {
             ErrorHandler.logError(error, "getTimeout", "Failed to retrieve timeout value");
-            return Optional.empty();
+            throw error;
         }
     }
 }

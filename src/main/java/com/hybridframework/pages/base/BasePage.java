@@ -1,14 +1,13 @@
 package com.hybridframework.pages.base;
 
 import com.hybridframework.drivers.DriverFactory;
+import com.hybridframework.utils.Base64Utils;
 import com.hybridframework.utils.dynamicWaits.FluentWaitUtils;
 import com.hybridframework.utils.logging.ErrorHandler;
 import com.hybridframework.utils.logging.LoggerUtils;
 import org.apache.logging.log4j.Logger;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 
@@ -17,7 +16,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.Base64;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -27,23 +28,15 @@ import static com.hybridframework.utils.dynamicWaits.ExplicitWaitUtils.getWebDri
 public class BasePage {
 
     private static final Logger logger = LoggerUtils.getLogger(BasePage.class);
+    private static final String SCREENSHOT_DIRECTORY = "SCREENSHOT_DIR";
+    protected final WebDriver driver;
+    protected final Actions actions;
+    protected final JavascriptExecutor js;
 
-    public static void waitForElementToBeVisible(WebElement element) {
-        try {
-            getWebDriverWait().until(ExpectedConditions.visibilityOf(element));
-        } catch (Exception error) {
-            ErrorHandler.logError(error, "isElementVisible", "Element is not visible within timeout.");
-            throw error;
-        }
-    }
-
-    public static void waitForElementNotToBeVisible(WebElement element) {
-        try {
-            getWebDriverWait().until(ExpectedConditions.invisibilityOf(element));
-        } catch (Exception error) {
-            ErrorHandler.logError(error, "isElementNotVisible", "Element is still visible within timeout.");
-            throw error;
-        }
+    public BasePage() {
+        this.driver = DriverFactory.getInstance().getDriver();
+        this.actions = new Actions(driver);
+        this.js = (JavascriptExecutor) driver;
     }
 
     public static boolean isElementVisible(WebElement element) {
@@ -63,6 +56,24 @@ public class BasePage {
         } catch (Exception e) {
             logger.warn("Element is still visible: {}", element, e);
             return false;
+        }
+    }
+
+    public static void waitForElementToBeVisible(WebElement element) {
+        try {
+            getWebDriverWait().until(ExpectedConditions.visibilityOf(element));
+        } catch (Exception error) {
+            ErrorHandler.logError(error, "isElementVisible", "Element is not visible within timeout.");
+            throw error;
+        }
+    }
+
+    public static void waitForElementNotToBeVisible(WebElement element) {
+        try {
+            getWebDriverWait().until(ExpectedConditions.invisibilityOf(element));
+        } catch (Exception error) {
+            ErrorHandler.logError(error, "isElementNotVisible", "Element is still visible within timeout.");
+            throw error;
         }
     }
 
@@ -102,40 +113,87 @@ public class BasePage {
             FluentWaitUtils.waitForElementToBeVisible(element);
             Select select = new Select(element);
 
+            if (!isElementEnabled(element)) {
+                throw new IllegalStateException("Dropdown is disabled or not interactive");
+            }
+
+            List<WebElement> options = select.getOptions();
+            if (options.isEmpty()) {
+                throw new IllegalStateException("Dropdown has no options available");
+            }
+
             String method = selectMethod.trim().toLowerCase();
 
             switch (method) {
-                case "visibletext":
-                    if (!(value instanceof String)) {
-                        logger.error("Expected a String for 'visibletext' method.");
-                        throw new IllegalArgumentException("Expected a String for 'visibletext' method.");
+                case "visibletext" -> {
+                    String textValue = validateString(value, "visibletext");
+                    if (options.stream().noneMatch(opt -> opt.getText().equals(textValue))) {
+                        logger.error("Dropdown is disabled or not interactive using visible text method");
+                        throw new IllegalArgumentException("Option with text '" + textValue + "' not found. Available options: " +
+                                options.stream().map(WebElement::getText).toList());
                     }
-                    select.selectByVisibleText((String) value);
-                    break;
+                    select.selectByVisibleText(textValue);
+                }
 
-                case "value":
-                    if (!(value instanceof String)) {
-                        logger.info("Expected a String for 'value' method.");
-                        throw new IllegalArgumentException("Expected a String for 'value' method.");
+                case "value" -> {
+                    String stringValue = validateString(value, "value");
+                    if (options.stream().noneMatch(opt -> Objects.equals(opt.getDomProperty("value"), stringValue))) {
+                        logger.error("Dropdown is disabled or not interactive using value method");
+                        throw new IllegalArgumentException("Option with value '" + stringValue + "' not found. Available values: " +
+                                options.stream().map(opt -> opt.getDomProperty("value")).toList());
                     }
-                    select.selectByValue((String) value);
-                    break;
+                    select.selectByValue(stringValue);
+                }
 
-                case "index":
-                    if (!(value instanceof Integer)) {
-                        logger.error("Expected a Integer for 'index' method.");
-                        throw new IllegalArgumentException("Expected an Integer for 'index' method.");
+                case "index" -> {
+                    int index = validateInteger(value);
+                    if (index < 0 || index >= options.size()) {
+                        logger.error("Dropdown is disabled or not interactive using index method");
+                        throw new IllegalArgumentException("Index " + index + " is out of bounds. Available range: 0-" + (options.size() - 1));
                     }
-                    select.selectByIndex((Integer) value);
-                    break;
+                    select.selectByIndex(index);
+                }
 
-                default:
-                    throw new IllegalArgumentException("Invalid select method: " + selectMethod);
+                default -> throw new IllegalArgumentException("Invalid select method: " + selectMethod);
             }
         } catch (Exception error) {
             ErrorHandler.logError(error, "selectDropdownElement",
                     "Failed to select dropdown element using method: " + selectMethod + " with value: " + value);
             throw error;
+        }
+    }
+
+    private String validateString(Object value, String method) {
+        if (!(value instanceof String strValue)) {
+            throw new IllegalArgumentException("Expected a String for '" + method + "' method.");
+        }
+        return strValue;
+    }
+
+    private int validateInteger(Object value) {
+        if (!(value instanceof Integer intValue)) {
+            throw new IllegalArgumentException("Expected an Integer for 'index' method.");
+        }
+        return intValue;
+    }
+
+    public boolean isElementEnabled(WebElement element) {
+        try {
+            FluentWaitUtils.waitForElementToBeVisible(element);
+            return element.isEnabled() && !Objects.requireNonNull(element.getDomProperty("class")).contains("disabled");
+        } catch (Exception e) {
+            logger.warn("Element not enabled: {}", element, e);
+            return false;
+        }
+    }
+
+    public boolean isElementSelected(WebElement element) {
+        try {
+            FluentWaitUtils.waitForElementToBeVisible(element);
+            return element.isSelected();
+        } catch (Exception e) {
+            logger.warn("Failed to check if element is selected: {}", element, e);
+            return false;
         }
     }
 
@@ -293,56 +351,45 @@ public class BasePage {
         }
     }
 
-    public void captureScreenshot(String screenshotName) {
+    public String captureScreenshot(String screenshotName) {
         try {
-            // Take screenshot
-            File screenshot = ((TakesScreenshot) DriverFactory.getInstance().getDriver()).getScreenshotAs(OutputType.FILE);
+            // Generate timestamp and formatted filename
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+            String fileName = String.format("%s_%s.png", screenshotName, timestamp);
 
-            // Convert to Base64 (optional, useful for reports)
-            byte[] fileScreenshot = Files.readAllBytes(screenshot.toPath());
-            String base64EncodedScreenshot = Base64.getEncoder().encodeToString(fileScreenshot);
+            // Define structured screenshot directory
+            String screenshotDir = SCREENSHOT_DIRECTORY + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            Path destinationPath = Path.of(screenshotDir, fileName);
 
-            // Define screenshot storage path
-            String screenshotDir = "screenshots/";
-            Path destinationPath = Path.of(screenshotDir, screenshotName + ".png");
+            // Take the screenshot
+            File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
 
-            // Create directory if it doesn't exist
-            Files.createDirectories(destinationPath.getParent());
+            return saveScreenshot(destinationPath, screenshot);
 
-            // Save screenshot to file
-            Files.copy(screenshot.toPath(), destinationPath, StandardCopyOption.REPLACE_EXISTING);
-
-            logger.info("Screenshot saved: {}", destinationPath.toAbsolutePath());
         } catch (IOException error) {
             ErrorHandler.logError(error, "captureScreenshot", "Failed to capture screenshot: " + screenshotName);
             throw new RuntimeException("Error capturing screenshot: " + screenshotName, error);
         }
     }
 
-    public void navigateBack() {
+    private String saveScreenshot(Path destinationPath, File screenshot) throws IOException {
         try {
-            DriverFactory.getInstance().getDriver().navigate().back();
-        } catch (Exception error) {
-            ErrorHandler.logError(error, "navigateBack", "Failed to navigate back");
-            throw error;
-        }
-    }
+            // Ensure the directory exists before saving the screenshot
+            Files.createDirectories(destinationPath.getParent());
+            Files.copy(screenshot.toPath(), destinationPath, StandardCopyOption.REPLACE_EXISTING);
 
-    public void navigateForward() {
-        try {
-            DriverFactory.getInstance().getDriver().navigate().forward();
-        } catch (Exception error) {
-            ErrorHandler.logError(error, "navigateForward", "Failed to navigate forward");
-            throw error;
-        }
-    }
+            logger.info("Screenshot successfully saved at: {}", destinationPath.toAbsolutePath());
 
-    public void refreshPage() {
-        try {
-            DriverFactory.getInstance().getDriver().navigate().refresh();
+            // Convert to Base64 for reporting and return
+            return Base64Utils.encodeArray(Files.readAllBytes(destinationPath));
+        } catch (IOException ioError) {
+            ErrorHandler.logError(ioError, "saveScreenshot",
+                    "I/O error occurred while saving screenshot at: " + destinationPath);
+            throw new IOException("Failed to save screenshot at: " + destinationPath, ioError);
         } catch (Exception error) {
-            ErrorHandler.logError(error, "refreshPage", "Failed to refresh page");
-            throw error;
+            ErrorHandler.logError(error, "saveScreenshot",
+                    "Unexpected error occurred while processing screenshot: " + screenshot.getName());
+            throw new IOException("Unexpected error while processing screenshot: " + screenshot.getName(), error);
         }
     }
 
@@ -356,9 +403,35 @@ public class BasePage {
         }
     }
 
+    public void navigateBack() {
+        try {
+            driver.navigate().back();
+        } catch (Exception error) {
+            ErrorHandler.logError(error, "navigateBack", "Failed to navigate back");
+            throw error;
+        }
+    }
+
+    public void navigateForward() {
+        try {
+            driver.navigate().forward();
+        } catch (Exception error) {
+            ErrorHandler.logError(error, "navigateForward", "Failed to navigate forward");
+            throw error;
+        }
+    }
+
+    public void refreshPage() {
+        try {
+            driver.navigate().refresh();
+        } catch (Exception error) {
+            ErrorHandler.logError(error, "refreshPage", "Failed to refresh page");
+            throw error;
+        }
+    }
+
     public void scrollPageUp() {
         try {
-            JavascriptExecutor js = (JavascriptExecutor) DriverFactory.getInstance().getDriver();
             js.executeScript("window.scrollTo(0, 0)");
         } catch (Exception error) {
             ErrorHandler.logError(error, "scrollPageUp", "Failed to scroll page up");
@@ -368,7 +441,6 @@ public class BasePage {
 
     public void scrollPageDown() {
         try {
-            JavascriptExecutor js = (JavascriptExecutor) DriverFactory.getInstance().getDriver();
             js.executeScript("window.scrollTo(0, document.body.scrollHeight)");
         } catch (Exception error) {
             ErrorHandler.logError(error, "scrollPageDown", "Failed to scroll page down");
@@ -378,10 +450,30 @@ public class BasePage {
 
     public void scrollToElement(WebElement element) {
         try {
-            JavascriptExecutor js = (JavascriptExecutor) DriverFactory.getInstance().getDriver();
             js.executeScript("arguments[0].scrollIntoView(true);", element);
         } catch (Exception error) {
             ErrorHandler.logError(error, "scrollToElement", "Failed to scroll to element");
+            throw error;
+        }
+    }
+
+    public void hoverOverElement(WebElement element) {
+        try {
+            FluentWaitUtils.waitForElementToBeVisible(element);
+            actions.moveToElement(element).perform();
+        } catch (Exception error) {
+            ErrorHandler.logError(error, "hoverOverElement", "Failed to hover over element");
+            throw error;
+        }
+    }
+
+    public void dragAndDrop(WebElement source, WebElement target) {
+        try {
+            FluentWaitUtils.waitForElementToBeVisible(source);
+            FluentWaitUtils.waitForElementToBeVisible(target);
+            actions.dragAndDrop(source, target).perform();
+        } catch (Exception error) {
+            ErrorHandler.logError(error, "dragAndDrop", "Failed to drag and drop file");
             throw error;
         }
     }

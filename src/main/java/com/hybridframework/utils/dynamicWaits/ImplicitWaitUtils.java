@@ -7,7 +7,6 @@ import com.hybridframework.utils.logging.ErrorHandler;
 import org.openqa.selenium.WebDriver;
 
 import java.time.Duration;
-import java.util.Optional;
 
 public class ImplicitWaitUtils {
 
@@ -22,8 +21,7 @@ public class ImplicitWaitUtils {
      */
     public static void applyImplicitWait(WebDriver driver) {
         try {
-            Optional<Integer> timeout = getTimeout();
-            driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(timeout.orElse(10)));
+            driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(getTimeout()));
         } catch (Exception error) {
             ErrorHandler.logError(error, "applyImplicitWait", "Failed to apply implicit wait time");
             throw error;
@@ -38,14 +36,15 @@ public class ImplicitWaitUtils {
      * Fetch timeout value from properties file
      * @return Optional containing the timeout value if found
      */
-    private static Optional<Integer> getTimeout() {
+    private static int getTimeout() {
         try {
             return PropertiesConfigManager
                     .getConfiguration(PropertiesFileAlias.GLOBAL.getConfigurationAlias())
-                    .getProperty(TIMEOUT_KEY, Integer.class);
+                    .getProperty(TIMEOUT_KEY, Integer.class)
+                    .orElse(10);
         } catch (Exception error) {
             ErrorHandler.logError(error, "getTimeout", "Failed to retrieve timeout value");
-            return Optional.empty();
+            throw error;
         }
     }
 }

@@ -16,7 +16,6 @@ import org.openqa.selenium.support.ui.Wait;
 
 import java.time.Duration;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 public class FluentWaitUtils {
 
@@ -33,12 +32,10 @@ public class FluentWaitUtils {
 
     private static Wait<WebDriver> getFluentWait() {
         if (fluentWaitInstance == null) {
-            Optional<Integer> timeout = getDefaultTimeout();
-            Optional<Integer> pollingTimeout = getPollingTimeout();
 
             fluentWaitInstance = new FluentWait<>(driverFactory.getDriver())
-                    .withTimeout(Duration.ofSeconds(timeout.orElse(60)))
-                    .pollingEvery(Duration.ofMillis(pollingTimeout.orElse(1000)))
+                    .withTimeout(Duration.ofSeconds(getDefaultTimeout()))
+                    .pollingEvery(Duration.ofMillis(getPollingTimeout()))
                     .ignoring(WebDriverException.class);
         }
         return fluentWaitInstance;
@@ -127,25 +124,27 @@ public class FluentWaitUtils {
         }
     }
 
-    private static Optional<Integer> getDefaultTimeout() {
+    private static int getDefaultTimeout() {
         try {
             return PropertiesConfigManager
                     .getConfiguration(PropertiesFileAlias.GLOBAL.getConfigurationAlias())
-                    .getProperty(TIMEOUT_KEY, Integer.class);
+                    .getProperty(TIMEOUT_KEY, Integer.class)
+                    .orElse(60);
         } catch (Exception error) {
             ErrorHandler.logError(error, "getTimeout", "Failed to retrieve timeout value");
-            return Optional.empty();
+            throw error;
         }
     }
 
-    private static Optional<Integer> getPollingTimeout() {
+    private static int getPollingTimeout() {
         try {
             return PropertiesConfigManager
                     .getConfiguration(PropertiesFileAlias.GLOBAL.getConfigurationAlias())
-                    .getProperty(POLLING_KEY, Integer.class);
+                    .getProperty(POLLING_KEY, Integer.class)
+                    .orElse(1000);
         } catch (Exception error) {
             ErrorHandler.logError(error, "getPollingTimeout", "Failed to retrieve polling timeout value");
-            return Optional.empty();
+            throw error;
         }
     }
 }
