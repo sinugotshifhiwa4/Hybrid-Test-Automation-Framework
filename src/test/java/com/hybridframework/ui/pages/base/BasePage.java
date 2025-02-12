@@ -1,5 +1,7 @@
-package com.hybridframework.pages.base;
+package com.hybridframework.ui.pages.base;
 
+import com.hybridframework.config.properties.PropertiesConfigManager;
+import com.hybridframework.config.properties.PropertiesFileAlias;
 import com.hybridframework.drivers.DriverFactory;
 import com.hybridframework.utils.Base64Utils;
 import com.hybridframework.utils.dynamicWaits.FluentWaitUtils;
@@ -20,6 +22,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -33,38 +36,42 @@ public class BasePage {
     private final DriverFactory driverFactory = DriverFactory.getInstance();
 
 
-    public static boolean isElementVisible(WebElement element) {
+    public static boolean isElementVisible(WebElement element, String elementName) {
         try {
             getWebDriverWait().until(ExpectedConditions.visibilityOf(element));
+            logger.info("Element '{}' is visible", elementName);
             return true;
-        } catch (Exception e) {
-            logger.warn("Element not visible: {}", element, e);
-            return false;
+        } catch (Exception error) {
+            logger.error("Element not visible: {}", element, error);
+            throw error;
         }
     }
 
-    public static boolean isElementNotVisible(WebElement element) {
+    public static boolean isElementNotVisible(By element, String elementName) {
         try {
-            getWebDriverWait().until(ExpectedConditions.invisibilityOf(element));
+            getWebDriverWait().until(ExpectedConditions.invisibilityOfElementLocated(element));
+            logger.info("Element '{}' is not visible", elementName);
             return true;
-        } catch (Exception e) {
-            logger.warn("Element is still visible: {}", element, e);
-            return false;
+        } catch (Exception error) {
+            logger.error("Element is still visible: {}", element, error);
+            throw error;
         }
     }
 
-    public static void waitForElementToBeVisible(WebElement element) {
+    public static void waitForElementToBeVisible(WebElement element, String elementName) {
         try {
             getWebDriverWait().until(ExpectedConditions.visibilityOf(element));
+            logger.info("Element '{}' is visible", elementName);
         } catch (Exception error) {
             ErrorHandler.logError(error, "isElementVisible", "Element is not visible within timeout.");
             throw error;
         }
     }
 
-    public static void waitForElementNotToBeVisible(WebElement element) {
+    public static void waitForElementNotVisible(By element, String elementName) {
         try {
-            getWebDriverWait().until(ExpectedConditions.invisibilityOf(element));
+            getWebDriverWait().until(ExpectedConditions.invisibilityOfElementLocated(element));
+            logger.info("Element '{}' is not visible as expected", elementName);
         } catch (Exception error) {
             ErrorHandler.logError(error, "isElementNotVisible", "Element is still visible within timeout.");
             throw error;
@@ -344,7 +351,9 @@ public class BasePage {
             String fileName = String.format("%s_%s.png", screenshotName, timestamp);
 
             // Define structured screenshot directory
-            String screenshotDir = SCREENSHOT_DIRECTORY + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            String screenshotDir = PropertiesConfigManager.getPropertyKeyFromCache(
+                    PropertiesFileAlias.GLOBAL.getConfigurationAlias(),
+                    SCREENSHOT_DIRECTORY);
             Path destinationPath = Path.of(screenshotDir, fileName);
 
             // Take the screenshot
@@ -500,21 +509,21 @@ public class BasePage {
         }
     }
 
-    private Actions getActions(){
+    private Actions getActions() {
         try {
             WebDriver driver = driverFactory.getDriver();
             return new Actions(driver);
-        } catch (Exception error){
+        } catch (Exception error) {
             ErrorHandler.logError(error, "getActions", "Failed to get actions");
             throw error;
         }
     }
 
-    private JavascriptExecutor  getJsExecutor(){
+    private JavascriptExecutor getJsExecutor() {
         try {
             WebDriver driver = driverFactory.getDriver();
             return (JavascriptExecutor) driver;
-        } catch (Exception error){
+        } catch (Exception error) {
             ErrorHandler.logError(error, "getJsExecutor", "Failed to get javascript executor");
             throw error;
         }

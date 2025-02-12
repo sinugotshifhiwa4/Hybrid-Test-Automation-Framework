@@ -4,8 +4,9 @@ import com.hybridframework.config.properties.PropertiesConfigManager;
 import com.hybridframework.config.properties.PropertiesFileAlias;
 import com.hybridframework.drivers.BrowserFactory;
 import com.hybridframework.drivers.DriverFactory;
-import com.hybridframework.pages.base.BasePage;
+import com.hybridframework.ui.pages.base.BasePage;
 import com.hybridframework.testDataStorage.TestContextStore;
+import com.hybridframework.ui.pages.orangeHrmPages.LoginPage;
 import com.hybridframework.utils.logging.ErrorHandler;
 import com.hybridframework.utils.logging.LoggerUtils;
 import org.apache.logging.log4j.Logger;
@@ -22,6 +23,9 @@ public class TestBase extends BasePage{
     private static final String DEMO_TEST_ID_ONE = "TEST_ONE";
     private static final String BROWSER = "CHROME_BROWSER";
     private static final String URL = "PORTAL_BASE_URL";
+
+    // Pages
+    protected LoginPage loginPage;
 
     @BeforeClass(alwaysRun = true)
     public void setup(){
@@ -43,11 +47,16 @@ public class TestBase extends BasePage{
             // initialize Json Mapper
             initializeJsonMapper();
 
+            // Initialize Pages
+            loginPage = new LoginPage(driverFactory.getDriver());
+
             // Navigate to Url
             driverFactory.navigateToUrl(PropertiesConfigManager.getPropertyKeyFromCache(
                     PropertiesFileAlias.UAT.getConfigurationAlias(),
                     URL
             ));
+            loginPage.isCompanyLogoPresent();
+
 
             logger.info("Setup configured successfully");
         } catch (Exception error){
