@@ -21,8 +21,7 @@ public class LoginPage extends TestBase {
 
     public void fillUsername(String username) {
         try{
-            sendKeys(driver.findElement(usernameInput), username);
-
+            sendKeys(driver.findElement(usernameInput), username, "Username");
         } catch (Exception error){
             ErrorHandler.logError(error, "fillUsername", "Failed to fill username input");
             throw error;
@@ -31,7 +30,7 @@ public class LoginPage extends TestBase {
 
     public void fillPassword(String password) {
         try{
-            sendKeys(driver.findElement(passwordInput), password);
+            sendKeys(driver.findElement(passwordInput), password, "Password");
         } catch (Exception error){
             ErrorHandler.logError(error, "fillPassword", "Failed to fill password input");
             throw error;
@@ -52,6 +51,15 @@ public class LoginPage extends TestBase {
             isElementVisible(driver.findElement(companyLogo), "Company Logo");
         } catch (Exception error){
             ErrorHandler.logError(error, "isCompanyLogoPresent", "Failed to validate presence of company logo");
+            throw error;
+        }
+    }
+
+    public void clickCompanyLogo(){
+        try{
+            clickElement(driver.findElement(companyLogo));
+        } catch (Exception error){
+            ErrorHandler.logError(error, "clickCompanyLogo", "Failed to click company logo");
             throw error;
         }
     }

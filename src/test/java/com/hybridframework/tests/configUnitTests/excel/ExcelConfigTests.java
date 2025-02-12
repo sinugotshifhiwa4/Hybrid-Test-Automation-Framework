@@ -1,4 +1,4 @@
-package com.hybridframework.tests.unit.excel;
+package com.hybridframework.tests.configUnitTests.excel;
 
 import com.hybridframework.dataProviders.TestDataProvider;
 import com.hybridframework.utils.logging.ErrorHandler;

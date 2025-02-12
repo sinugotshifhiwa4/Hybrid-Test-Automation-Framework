@@ -1,7 +1,10 @@
 package com.hybridframework.tests.base;
 
+import com.hybridframework.config.environments.EnvironmentFileAlias;
+import com.hybridframework.config.environments.EnvironmentSecretKey;
 import com.hybridframework.config.properties.PropertiesConfigManager;
 import com.hybridframework.config.properties.PropertiesFileAlias;
+import com.hybridframework.crypto.utils.EnvironmentCryptoManager;
 import com.hybridframework.drivers.BrowserFactory;
 import com.hybridframework.drivers.DriverFactory;
 import com.hybridframework.ui.pages.base.BasePage;
@@ -12,6 +15,8 @@ import com.hybridframework.utils.logging.LoggerUtils;
 import org.apache.logging.log4j.Logger;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+
+import java.util.List;
 
 import static com.hybridframework.tests.base.BaseUtils.*;
 
@@ -76,6 +81,19 @@ public class TestBase extends BasePage{
             throw error;
         } finally {
             driverFactory.quitDriver();
+        }
+    }
+
+    public List<String> decryptCredentials() {
+        try {
+            return EnvironmentCryptoManager.decryptEnvironmentVariables(
+                    EnvironmentFileAlias.UAT.getEnvironmentAlias(),
+                    EnvironmentSecretKey.UAT.getKeyName(),
+                    "PORTAL_USERNAME", "PORTAL_PASSWORD"
+            );
+        } catch (Exception error) {
+            ErrorHandler.logError(error, "decryptCredentials", "Failed to decrypt credentials");
+            throw error;
         }
     }
 }

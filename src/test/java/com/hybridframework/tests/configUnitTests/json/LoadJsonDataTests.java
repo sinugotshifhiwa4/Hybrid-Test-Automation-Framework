@@ -1,4 +1,4 @@
-package com.hybridframework.tests.unit.json;
+package com.hybridframework.tests.configUnitTests.json;
 
 import com.hybridframework.tests.base.TestBase;
 import com.hybridframework.utils.jacksonUtils.JsonReader;

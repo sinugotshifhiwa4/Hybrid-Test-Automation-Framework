@@ -12,6 +12,7 @@ import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
+import org.testng.Assert;
 
 import java.io.File;
 import java.io.IOException;
@@ -78,10 +79,20 @@ public class BasePage {
         }
     }
 
-    public void sendKeys(WebElement element, String value) {
+    public void sendKeys(WebElement element, String value, String elementName) {
         try {
             FluentWaitUtils.waitForElementToBeVisible(element);
             element.sendKeys(value);
+
+            // Convert elementName to lowercase for case-insensitive comparison
+            String lowercaseElementName = elementName.toLowerCase();
+
+            // Mask the value if it's a sensitive field
+            String logValue = lowercaseElementName.contains("username") ||
+                    lowercaseElementName.contains("password")
+                    ? "****" : value;
+
+            logger.info("Element '{}' has been sent with value '{}'", elementName, logValue);
         } catch (Exception error) {
             ErrorHandler.logError(error, "sendKeys", "Failed to send keys");
             throw error;
@@ -230,6 +241,25 @@ public class BasePage {
         }
     }
 
+    public boolean isInputFieldNotEmpty(WebElement element, String elementName) {
+        try {
+            FluentWaitUtils.waitForElementToBeVisible(element);
+
+            String fieldValue = element.getDomProperty("value");
+            if (fieldValue != null && !fieldValue.trim().isEmpty()) {
+                logger.info("Input field '{}' is not empty", elementName);
+                return true;
+            } else {
+                logger.warn("Input field '{}' is empty!", elementName);
+                throw new AssertionError("Input field " + elementName + " is empty!");
+            }
+        } catch (Exception error) {
+            ErrorHandler.logError(error, "isInputFieldNotEmpty", "Failed to validate input field: " + elementName);
+            throw error;
+        }
+    }
+
+
     public List<String> getTextsFromElements(List<WebElement> elements) {
         try {
             return elements.stream()
@@ -373,7 +403,7 @@ public class BasePage {
             Files.createDirectories(destinationPath.getParent());
             Files.copy(screenshot.toPath(), destinationPath, StandardCopyOption.REPLACE_EXISTING);
 
-            logger.info("Screenshot successfully saved at: {}", destinationPath.toAbsolutePath());
+            logger.info("Screenshot successfully saved at: {}", destinationPath);
 
             // Convert to Base64 for reporting and return
             return Base64Utils.encodeArray(Files.readAllBytes(destinationPath));
