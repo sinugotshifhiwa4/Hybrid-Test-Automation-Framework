@@ -37,9 +37,6 @@ public class TestBase extends BasePage{
                             BROWSER)
             );
 
-            // Load driver in Base Page
-            loadDriverToBasePage();
-
             // initialize TestContextStore
             initializeTestDataContext(DEMO_TEST_ID_ONE); // Test Ids to be used for storage during execution
 
@@ -59,7 +56,7 @@ public class TestBase extends BasePage{
         }
     }
 
-    @AfterClass
+    @AfterClass(alwaysRun = true)
     public void tearDown(){
         try{
             TestContextStore.cleanupTestContext(DEMO_TEST_ID_ONE);

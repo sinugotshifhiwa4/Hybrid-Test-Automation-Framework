@@ -30,21 +30,8 @@ public class BasePage {
 
     private static final Logger logger = LoggerUtils.getLogger(BasePage.class);
     private static final String SCREENSHOT_DIRECTORY = "SCREENSHOT_DIR";
-    protected WebDriver driver;
-    protected Actions actions;
-    protected JavascriptExecutor js;
+    private final DriverFactory driverFactory = DriverFactory.getInstance();
 
-    protected void loadDriverToBasePage() {
-        if (driver == null) {
-            driver = DriverFactory.getInstance().getDriver();
-            if (driver == null) {
-                logger.error("WebDriver has not been initialized in DriverFactory.");
-                throw new IllegalStateException("WebDriver has not been initialized in DriverFactory.");
-            }
-            actions = new Actions(driver);
-            js = (JavascriptExecutor) driver;
-        }
-    }
 
     public static boolean isElementVisible(WebElement element) {
         try {
@@ -322,14 +309,14 @@ public class BasePage {
                 return;
             }
 
-            Set<String> windowHandles = driver.getWindowHandles();
+            Set<String> windowHandles = driverFactory.getDriver().getWindowHandles();
             if (!windowHandles.contains(windowHandle)) {
                 ErrorHandler.logError(new NoSuchWindowException("Window handle not found: " + windowHandle),
                         "switchToWindow", "Window handle not found: " + windowHandle);
                 return;
             }
 
-            driver.switchTo().window(windowHandle);
+            driverFactory.getDriver().switchTo().window(windowHandle);
             logger.info("Switched to window successfully: {}", windowHandle);
 
         } catch (NoSuchWindowException error) {
@@ -361,7 +348,7 @@ public class BasePage {
             Path destinationPath = Path.of(screenshotDir, fileName);
 
             // Take the screenshot
-            File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+            File screenshot = ((TakesScreenshot) driverFactory.getDriver()).getScreenshotAs(OutputType.FILE);
 
             return saveScreenshot(destinationPath, screenshot);
 
@@ -440,7 +427,7 @@ public class BasePage {
 
     public void navigateBack() {
         try {
-            driver.navigate().back();
+            driverFactory.getDriver().navigate().back();
         } catch (Exception error) {
             ErrorHandler.logError(error, "navigateBack", "Failed to navigate back");
             throw error;
@@ -449,7 +436,7 @@ public class BasePage {
 
     public void navigateForward() {
         try {
-            driver.navigate().forward();
+            driverFactory.getDriver().navigate().forward();
         } catch (Exception error) {
             ErrorHandler.logError(error, "navigateForward", "Failed to navigate forward");
             throw error;
@@ -458,7 +445,7 @@ public class BasePage {
 
     public void refreshPage() {
         try {
-            driver.navigate().refresh();
+            driverFactory.getDriver().navigate().refresh();
         } catch (Exception error) {
             ErrorHandler.logError(error, "refreshPage", "Failed to refresh page");
             throw error;
@@ -467,7 +454,7 @@ public class BasePage {
 
     public void scrollPageUp() {
         try {
-            js.executeScript("window.scrollTo(0, 0)");
+            getJsExecutor().executeScript("window.scrollTo(0, 0)");
         } catch (Exception error) {
             ErrorHandler.logError(error, "scrollPageUp", "Failed to scroll page up");
             throw error;
@@ -476,7 +463,7 @@ public class BasePage {
 
     public void scrollPageDown() {
         try {
-            js.executeScript("window.scrollTo(0, document.body.scrollHeight)");
+            getJsExecutor().executeScript("window.scrollTo(0, document.body.scrollHeight)");
         } catch (Exception error) {
             ErrorHandler.logError(error, "scrollPageDown", "Failed to scroll page down");
             throw error;
@@ -485,7 +472,7 @@ public class BasePage {
 
     public void scrollToElement(WebElement element) {
         try {
-            js.executeScript("arguments[0].scrollIntoView(true);", element);
+            getJsExecutor().executeScript("arguments[0].scrollIntoView(true);", element);
         } catch (Exception error) {
             ErrorHandler.logError(error, "scrollToElement", "Failed to scroll to element");
             throw error;
@@ -495,7 +482,7 @@ public class BasePage {
     public void hoverOverElement(WebElement element) {
         try {
             FluentWaitUtils.waitForElementToBeVisible(element);
-            actions.moveToElement(element).perform();
+            getActions().moveToElement(element).perform();
         } catch (Exception error) {
             ErrorHandler.logError(error, "hoverOverElement", "Failed to hover over element");
             throw error;
@@ -506,9 +493,29 @@ public class BasePage {
         try {
             FluentWaitUtils.waitForElementToBeVisible(source);
             FluentWaitUtils.waitForElementToBeVisible(target);
-            actions.dragAndDrop(source, target).perform();
+            getActions().dragAndDrop(source, target).perform();
         } catch (Exception error) {
             ErrorHandler.logError(error, "dragAndDrop", "Failed to drag and drop file");
+            throw error;
+        }
+    }
+
+    private Actions getActions(){
+        try {
+            WebDriver driver = driverFactory.getDriver();
+            return new Actions(driver);
+        } catch (Exception error){
+            ErrorHandler.logError(error, "getActions", "Failed to get actions");
+            throw error;
+        }
+    }
+
+    private JavascriptExecutor  getJsExecutor(){
+        try {
+            WebDriver driver = driverFactory.getDriver();
+            return (JavascriptExecutor) driver;
+        } catch (Exception error){
+            ErrorHandler.logError(error, "getJsExecutor", "Failed to get javascript executor");
             throw error;
         }
     }
