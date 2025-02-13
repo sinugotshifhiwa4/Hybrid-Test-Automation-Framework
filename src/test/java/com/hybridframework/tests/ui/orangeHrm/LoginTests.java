@@ -15,8 +15,8 @@ import java.util.List;
 public class LoginTests extends TestBase {
 
     private static final Logger logger = LoggerUtils.getLogger(LoginTests.class);
-    private static final String INVALID_USERNAME = "Admin";
-    private static final String INVALID_PASSWORD = "admin123";
+    private static final String INVALID_USERNAME = "User8958";
+    private static final String INVALID_PASSWORD = "password123";
 
     @Test(retryAnalyzer = TestRetryAnalyzer.class)
     public void loginWithValidCredentials() {
