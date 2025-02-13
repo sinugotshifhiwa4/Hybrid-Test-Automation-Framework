@@ -4,6 +4,7 @@ import com.hybridframework.config.environments.EnvironmentFileAlias;
 import com.hybridframework.config.environments.EnvironmentSecretKey;
 import com.hybridframework.crypto.utils.EnvironmentCryptoManager;
 import com.hybridframework.tests.base.TestBase;
+import com.hybridframework.utils.TestRetryAnalyzer;
 import com.hybridframework.utils.logging.ErrorHandler;
 import com.hybridframework.utils.logging.LoggerUtils;
 import org.apache.logging.log4j.Logger;
@@ -14,10 +15,10 @@ import java.util.List;
 public class LoginTests extends TestBase {
 
     private static final Logger logger = LoggerUtils.getLogger(LoginTests.class);
-    private static final String INVALID_USERNAME = "User9745";
-    private static final String INVALID_PASSWORD = "password123";
+    private static final String INVALID_USERNAME = "Admin";
+    private static final String INVALID_PASSWORD = "admin123";
 
-    @Test
+    @Test(retryAnalyzer = TestRetryAnalyzer.class)
     public void loginWithValidCredentials() {
         try {
             loginPage.loginToPortal(decryptCredentials().get(0), decryptCredentials().get(1));
@@ -30,7 +31,7 @@ public class LoginTests extends TestBase {
         }
     }
 
-    @Test
+    @Test(retryAnalyzer = TestRetryAnalyzer.class)
     public void loginWithInvalidCredentials() {
         try {
             loginPage.loginToPortal(INVALID_USERNAME, INVALID_PASSWORD);

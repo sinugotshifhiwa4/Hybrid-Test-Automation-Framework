@@ -2,7 +2,6 @@ package com.hybridframework.utils;
 
 import com.hybridframework.utils.logging.ErrorHandler;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,10 +36,9 @@ public class FileUtils {
      *
      * @param dirPath  The path to the directory to create the file in.
      * @param fileName The name of the file to create.
-     * @return The File object representing the created file.
      * @throws IOException If the file cannot be created due to an I/O error.
      */
-    public static File createFileIfNotExists(String dirPath, String fileName) throws IOException {
+    public static void createFileIfNotExists(String dirPath, String fileName) throws IOException {
         if (fileName == null || fileName.isBlank()) {
             throw new IllegalArgumentException("File name cannot be null or empty.");
         }
@@ -50,7 +48,6 @@ public class FileUtils {
             if (!Files.exists(filePath)) {
                 Files.createFile(filePath);
             }
-            return filePath.toFile();
         } catch (Exception error) {
             ErrorHandler.logError(
                     error,

@@ -2,6 +2,8 @@ package com.hybridframework.utils;
 
 import com.hybridframework.config.properties.PropertiesConfigManager;
 import com.hybridframework.config.properties.PropertiesFileAlias;
+import com.hybridframework.drivers.DriverFactory;
+import com.hybridframework.tests.base.TestBase;
 import com.hybridframework.utils.logging.ErrorHandler;
 import org.testng.IRetryAnalyzer;
 import org.testng.ITestResult;
@@ -30,11 +32,20 @@ public class TestRetryAnalyzer implements IRetryAnalyzer {
         try {
             if (retryCount < maxRetryCount) {
                 retryCount++;
+
+                // Quit and restart the WebDriver for a clean retry
+                DriverFactory.getInstance().quitDriver();
+
+                Object testInstance = result.getInstance();
+                if (testInstance instanceof TestBase) {
+                    ((TestBase) testInstance).setup(); // Restart the browser
+                }
+
                 return true;
             }
             return false;
         } catch (Exception error) {
-            ErrorHandler.logError(error, "retry", "Failed to retry count");
+            ErrorHandler.logError(error, "retry", "Failed to retry test execution");
             throw error;
         }
     }
