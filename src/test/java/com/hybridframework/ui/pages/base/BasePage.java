@@ -99,11 +99,12 @@ public class BasePage {
         }
     }
 
-    public void clickElement(WebElement element) {
+    public void clickElement(WebElement element, String elementName) {
         try {
             FluentWaitUtils.waitForElementToBeVisible(element);
             FluentWaitUtils.waitForElementToBeClickable(element);
             element.click();
+            logger.info("Element '{}' has been clicked", elementName);
         } catch (Exception error) {
             ErrorHandler.logError(error, "clickElement", "Failed to click element");
             throw error;

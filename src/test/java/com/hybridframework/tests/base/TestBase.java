@@ -18,7 +18,8 @@ import org.testng.annotations.BeforeClass;
 
 import java.util.List;
 
-import static com.hybridframework.tests.base.BaseUtils.*;
+import static com.hybridframework.tests.base.ConfigurationManager.initializeConfigurations;
+import static com.hybridframework.tests.base.ConfigurationManager.initializeTestConfig;
 
 public class TestBase extends BasePage{
 
@@ -33,38 +34,21 @@ public class TestBase extends BasePage{
     protected LoginPage loginPage;
 
     @BeforeClass(alwaysRun = true)
-    public void setup(){
-        try{
-            // Load configs
-            loadConfigurations();
+    public void setup() {
+        try {
+            // Load essential configurations first
+            initializeConfigurations();
+            initializeTestConfig(DEMO_TEST_ID_ONE);
 
-            // Initialize browser/driver
-            browserFactory = new BrowserFactory();
-            browserFactory.initializeBrowser(
-                    PropertiesConfigManager.getPropertyKeyFromCache(
-                            PropertiesFileAlias.GLOBAL.getConfigurationAlias(),
-                            BROWSER)
-            );
-
-            // initialize TestContextStore
-            initializeTestDataContext(DEMO_TEST_ID_ONE); // Test Ids to be used for storage during execution
-
-            // initialize Json Mapper
-            initializeJsonMapper();
-
-            // Initialize Pages
-            loginPage = new LoginPage(driverFactory.getDriver());
-
-            // Navigate to Url
-            driverFactory.navigateToUrl(PropertiesConfigManager.getPropertyKeyFromCache(
-                    PropertiesFileAlias.UAT.getConfigurationAlias(),
-                    URL
-            ));
-            loginPage.isCompanyLogoPresent();
-
+            // Only initialize browser-related components if not skipped
+            if (!Boolean.getBoolean("skipBrowserSetup")) {
+                initializeBrowserComponents();
+            } else {
+                logger.info("Skipping browser setup for encryption tests.");
+            }
 
             logger.info("Setup configured successfully");
-        } catch (Exception error){
+        } catch (Exception error) {
             ErrorHandler.logError(error, "setup", "Failed to initialize setup");
             throw error;
         }
@@ -81,6 +65,33 @@ public class TestBase extends BasePage{
             throw error;
         } finally {
             driverFactory.quitDriver();
+        }
+    }
+
+    private void initializeBrowserComponents() {
+        try {
+            // Initialize browser/driver
+            browserFactory = new BrowserFactory();
+            browserFactory.initializeBrowser(
+                    PropertiesConfigManager.getPropertyKeyFromCache(
+                            PropertiesFileAlias.GLOBAL.getConfigurationAlias(),
+                            BROWSER
+                    )
+            );
+
+            // Initialize Pages
+            loginPage = new LoginPage(driverFactory.getDriver());
+
+            // Navigate to Url
+            String url = PropertiesConfigManager.getPropertyKeyFromCache(
+                    PropertiesFileAlias.UAT.getConfigurationAlias(),
+                    URL
+            );
+            driverFactory.navigateToUrl(url);
+            loginPage.isCompanyLogoPresent();
+        } catch (Exception error){
+            ErrorHandler.logError(error, "initializeBrowserComponents", "Failed to initialize browser components");
+            throw error;
         }
     }
 

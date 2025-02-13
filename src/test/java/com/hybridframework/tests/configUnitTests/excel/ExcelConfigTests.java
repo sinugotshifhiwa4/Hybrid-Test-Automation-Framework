@@ -1,6 +1,6 @@
 package com.hybridframework.tests.configUnitTests.excel;
 
-import com.hybridframework.dataProviders.TestDataProvider;
+import com.hybridframework.dataProviders.DataProviderConfig;
 import com.hybridframework.utils.logging.ErrorHandler;
 import com.hybridframework.utils.logging.LoggerUtils;
 import org.apache.logging.log4j.Logger;
@@ -13,7 +13,7 @@ public class ExcelConfigTests {
 
     private static final Logger logger = LoggerUtils.getLogger(ExcelConfigTests.class);
 
-    @Test(dataProvider = "genericDataProvider", dataProviderClass = TestDataProvider.class)
+    @Test(dataProvider = "genericDataProvider", dataProviderClass = DataProviderConfig.class)
     public void testLoadLoginExcelData(Map<String, String> data) {
         try {
             String username = data.get("Username");
@@ -60,12 +60,12 @@ public class ExcelConfigTests {
 
     @DataProvider(name = "UserDataProvider")
     public static Object[][] provideCustomTestData() {
-        return TestDataProvider.getTestData("UserData.xlsx", "User");
+        return DataProviderConfig.getTestData("UserData.xlsx", "User");
     }
 
     @DataProvider(name = "SingleUserDataProvider")
     public static Object[] provideSingleCustomTestData() {
-        return TestDataProvider.getTestDataByIndex("UserData.xlsx", "User", 1);
+        return DataProviderConfig.getTestDataByIndex("UserData.xlsx", "User", 1);
     }
 
 }
