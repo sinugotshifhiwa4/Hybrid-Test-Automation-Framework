@@ -14,7 +14,9 @@ import com.hybridframework.utils.logging.ErrorHandler;
 import com.hybridframework.utils.logging.LoggerUtils;
 import org.apache.logging.log4j.Logger;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 
 import java.util.List;
 
@@ -33,7 +35,7 @@ public class TestBase extends BasePage{
     // Pages
     protected LoginPage loginPage;
 
-    @BeforeClass(alwaysRun = true)
+    @BeforeMethod(alwaysRun = true)
     public void setup() {
         try {
             // Load essential configurations first
@@ -54,7 +56,7 @@ public class TestBase extends BasePage{
         }
     }
 
-    @AfterClass(alwaysRun = true)
+    @AfterMethod(alwaysRun = true)
     public void tearDown(){
         try{
             TestContextStore.cleanupTestContext(DEMO_TEST_ID_ONE);
@@ -70,30 +72,39 @@ public class TestBase extends BasePage{
 
     private void initializeBrowserComponents() {
         try {
-            // Initialize browser/driver
             browserFactory = new BrowserFactory();
-            browserFactory.initializeBrowser(
-                    PropertiesConfigManager.getPropertyKeyFromCache(
-                            PropertiesFileAlias.GLOBAL.getConfigurationAlias(),
-                            BROWSER
-                    )
+
+            // Retrieve browser name for this thread
+            String browser = PropertiesConfigManager.getPropertyKeyFromCache(
+                    PropertiesFileAlias.GLOBAL.getConfigurationAlias(),
+                    BROWSER
             );
 
-            // Initialize Pages
+            // Initialize the browser for the current test thread
+            browserFactory.initializeBrowser(browser);
+
+            // Ensure WebDriver is set before proceeding
+            if (!driverFactory.hasDriver()) {
+                logger.error("Driver could not be initialized for thread name'{}', and thread id '{}'", Thread.currentThread().getName(), Thread.currentThread().threadId());
+                throw new IllegalStateException("WebDriver initialization failed for thread: "
+                        + Thread.currentThread().threadId());
+            }
+
             loginPage = new LoginPage(driverFactory.getDriver());
 
-            // Navigate to Url
+            // Navigate to URL
             String url = PropertiesConfigManager.getPropertyKeyFromCache(
                     PropertiesFileAlias.UAT.getConfigurationAlias(),
                     URL
             );
             driverFactory.navigateToUrl(url);
             loginPage.isCompanyLogoPresent();
-        } catch (Exception error){
+        } catch (Exception error) {
             ErrorHandler.logError(error, "initializeBrowserComponents", "Failed to initialize browser components");
             throw error;
         }
     }
+
 
     public List<String> decryptCredentials() {
         try {

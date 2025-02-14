@@ -16,7 +16,8 @@ import java.io.IOException;
 public class KeyGeneratorTest {
     private static final Logger logger = LoggerUtils.getLogger(KeyGeneratorTest.class);
 
-    @Test
+    // Run test in terminal that generates and encrypt credentials: mvn clean test -Denv=crypto -DskipBrowserSetup=true
+    @Test(groups = {"encryption"}, priority = 1)
     public void generateSecretKey() throws IOException {
         try{
             // Generate a new secret key

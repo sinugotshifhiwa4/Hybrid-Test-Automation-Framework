@@ -13,7 +13,7 @@ import static com.hybridframework.drivers.BrowserOptionsUtils.*;
 public class BrowserFactory {
     private final Logger logger = LoggerUtils.getLogger(BrowserFactory.class);
 
-    public void initializeBrowser(String browserName, String... arguments) {
+    public synchronized void initializeBrowser(String browserName, String... arguments) {
         try {
             WebDriver driver = createDriver(browserName, arguments);
             DriverFactory driverFactory = DriverFactory.getInstance();

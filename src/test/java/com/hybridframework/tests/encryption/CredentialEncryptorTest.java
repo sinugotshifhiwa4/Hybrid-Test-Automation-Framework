@@ -17,7 +17,7 @@ public class CredentialEncryptorTest extends TestBase {
     private static final String USERNAME = "PORTAL_USERNAME";
     private static final String PASSWORD = "PORTAL_PASSWORD";
 
-    @Test
+    @Test(groups = {"encryption"}, priority = 2)
     public void encryptCredentials() throws CryptoException {
         try{
             // Run Encryption

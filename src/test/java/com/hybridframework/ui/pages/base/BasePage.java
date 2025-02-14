@@ -90,7 +90,7 @@ public class BasePage {
             // Mask the value if it's a sensitive field
             String logValue = lowercaseElementName.contains("username") ||
                     lowercaseElementName.contains("password")
-                    ? "****" : value;
+                    ? "******" : value;
 
             logger.info("Element '{}' has been sent with value '{}'", elementName, logValue);
         } catch (Exception error) {
