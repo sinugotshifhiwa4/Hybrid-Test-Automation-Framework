@@ -20,13 +20,14 @@ public class DriverFactory {
     }
 
     public WebDriver getDriver() {
-        try {
-            return threadLocalDriver.get();
-        } catch (Exception error) {
-            ErrorHandler.logError(error, "getDriver", "Failed to get driver");
-            return null;
+        if (threadLocalDriver.get() == null) {
+            logger.error("ThreadLocal driver not initialized for thread '{}'", Thread.currentThread().getName());
+            throw new IllegalStateException("WebDriver is not initialized for thread: "
+                    + Thread.currentThread().threadId());
         }
+        return threadLocalDriver.get();
     }
+
 
     public void setDriver(WebDriver driver) {
         try {
@@ -43,18 +44,20 @@ public class DriverFactory {
     }
 
     public void quitDriver() {
-        try{
+        try {
             WebDriver driver = threadLocalDriver.get();
             if (driver != null) {
-                driver.quit();
+                driver.quit();  // Terminate the driver instance
+                threadLocalDriver.remove();  // Clear the ThreadLocal
+                logger.info("Driver quit and removed successfully for thread: {}", Thread.currentThread().threadId());
             }
-        } catch (Exception error){
+        } catch (Exception error) {
             ErrorHandler.logError(error, "quitDriver", "Failed to quit driver");
             throw error;
-        } finally {
-            removeDriver();
         }
     }
+
+
 
     public void navigateToUrl(String url) {
         try{

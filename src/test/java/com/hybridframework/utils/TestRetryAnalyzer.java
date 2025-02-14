@@ -9,7 +9,6 @@ import org.testng.IRetryAnalyzer;
 import org.testng.ITestResult;
 
 public class TestRetryAnalyzer implements IRetryAnalyzer {
-
     private static final String MAX_RETRY_COUNT = "MAX_RETRY_COUNT";
     private static final int maxRetryCount = initializeMaxRetryCount();
     private int retryCount = 0;
@@ -33,12 +32,13 @@ public class TestRetryAnalyzer implements IRetryAnalyzer {
             if (retryCount < maxRetryCount) {
                 retryCount++;
 
-                // Quit and restart the WebDriver for a clean retry
+                // Clean up the existing driver
                 DriverFactory.getInstance().quitDriver();
 
-                Object testInstance = result.getInstance();
-                if (testInstance instanceof TestBase) {
-                    ((TestBase) testInstance).setup(); // Restart the browser
+                // Force reinitialize test context
+                Object instance = result.getInstance();
+                if (instance instanceof TestBase testBase) {
+                    testBase.setup(); // Call setup to reinitialize everything
                 }
 
                 return true;

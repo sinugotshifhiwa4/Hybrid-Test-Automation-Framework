@@ -18,7 +18,7 @@ public class LoginTests extends TestBase {
     private static final String INVALID_USERNAME = "User8958";
     private static final String INVALID_PASSWORD = "password123";
 
-    @Test(retryAnalyzer = TestRetryAnalyzer.class)
+    @Test(groups = {"sanity"}, retryAnalyzer = TestRetryAnalyzer.class)
     public void loginWithValidCredentials() {
         try {
             loginPage.loginToPortal(decryptCredentials().get(0), decryptCredentials().get(1));
@@ -31,7 +31,7 @@ public class LoginTests extends TestBase {
         }
     }
 
-    @Test(retryAnalyzer = TestRetryAnalyzer.class)
+    @Test(groups = {"sanity"}, retryAnalyzer = TestRetryAnalyzer.class)
     public void loginWithInvalidCredentials() {
         try {
             loginPage.loginToPortal(INVALID_USERNAME, INVALID_PASSWORD);

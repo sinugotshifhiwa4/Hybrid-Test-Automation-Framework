@@ -14,11 +14,14 @@ import com.hybridframework.utils.logging.ErrorHandler;
 import com.hybridframework.utils.logging.LoggerUtils;
 import org.apache.logging.log4j.Logger;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 
 import java.util.List;
 
-import static com.hybridframework.tests.base.BaseUtils.*;
+import static com.hybridframework.tests.base.ConfigurationManager.initializeConfigurations;
+import static com.hybridframework.tests.base.ConfigurationManager.initializeTestConfig;
 
 public class TestBase extends BasePage{
 
@@ -32,45 +35,28 @@ public class TestBase extends BasePage{
     // Pages
     protected LoginPage loginPage;
 
-    @BeforeClass(alwaysRun = true)
-    public void setup(){
-        try{
-            // Load configs
-            loadConfigurations();
+    @BeforeMethod(alwaysRun = true)
+    public void setup() {
+        try {
+            // Load essential configurations first
+            initializeConfigurations();
+            initializeTestConfig(DEMO_TEST_ID_ONE);
 
-            // Initialize browser/driver
-            browserFactory = new BrowserFactory();
-            browserFactory.initializeBrowser(
-                    PropertiesConfigManager.getPropertyKeyFromCache(
-                            PropertiesFileAlias.GLOBAL.getConfigurationAlias(),
-                            BROWSER)
-            );
-
-            // initialize TestContextStore
-            initializeTestDataContext(DEMO_TEST_ID_ONE); // Test Ids to be used for storage during execution
-
-            // initialize Json Mapper
-            initializeJsonMapper();
-
-            // Initialize Pages
-            loginPage = new LoginPage(driverFactory.getDriver());
-
-            // Navigate to Url
-            driverFactory.navigateToUrl(PropertiesConfigManager.getPropertyKeyFromCache(
-                    PropertiesFileAlias.UAT.getConfigurationAlias(),
-                    URL
-            ));
-            loginPage.isCompanyLogoPresent();
-
+            // Only initialize browser-related components if not skipped
+            if (!Boolean.getBoolean("skipBrowserSetup")) {
+                initializeBrowserComponents();
+            } else {
+                logger.info("Skipping browser setup for encryption tests.");
+            }
 
             logger.info("Setup configured successfully");
-        } catch (Exception error){
+        } catch (Exception error) {
             ErrorHandler.logError(error, "setup", "Failed to initialize setup");
             throw error;
         }
     }
 
-    @AfterClass(alwaysRun = true)
+    @AfterMethod(alwaysRun = true)
     public void tearDown(){
         try{
             TestContextStore.cleanupTestContext(DEMO_TEST_ID_ONE);
@@ -83,6 +69,42 @@ public class TestBase extends BasePage{
             driverFactory.quitDriver();
         }
     }
+
+    private void initializeBrowserComponents() {
+        try {
+            browserFactory = new BrowserFactory();
+
+            // Retrieve browser name for this thread
+            String browser = PropertiesConfigManager.getPropertyKeyFromCache(
+                    PropertiesFileAlias.GLOBAL.getConfigurationAlias(),
+                    BROWSER
+            );
+
+            // Initialize the browser for the current test thread
+            browserFactory.initializeBrowser(browser);
+
+            // Ensure WebDriver is set before proceeding
+            if (!driverFactory.hasDriver()) {
+                logger.error("Driver could not be initialized for thread name'{}', and thread id '{}'", Thread.currentThread().getName(), Thread.currentThread().threadId());
+                throw new IllegalStateException("WebDriver initialization failed for thread: "
+                        + Thread.currentThread().threadId());
+            }
+
+            loginPage = new LoginPage(driverFactory.getDriver());
+
+            // Navigate to URL
+            String url = PropertiesConfigManager.getPropertyKeyFromCache(
+                    PropertiesFileAlias.UAT.getConfigurationAlias(),
+                    URL
+            );
+            driverFactory.navigateToUrl(url);
+            loginPage.isCompanyLogoPresent();
+        } catch (Exception error) {
+            ErrorHandler.logError(error, "initializeBrowserComponents", "Failed to initialize browser components");
+            throw error;
+        }
+    }
+
 
     public List<String> decryptCredentials() {
         try {

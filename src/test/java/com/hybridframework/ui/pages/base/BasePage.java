@@ -90,7 +90,7 @@ public class BasePage {
             // Mask the value if it's a sensitive field
             String logValue = lowercaseElementName.contains("username") ||
                     lowercaseElementName.contains("password")
-                    ? "****" : value;
+                    ? "******" : value;
 
             logger.info("Element '{}' has been sent with value '{}'", elementName, logValue);
         } catch (Exception error) {
@@ -99,11 +99,12 @@ public class BasePage {
         }
     }
 
-    public void clickElement(WebElement element) {
+    public void clickElement(WebElement element, String elementName) {
         try {
             FluentWaitUtils.waitForElementToBeVisible(element);
             FluentWaitUtils.waitForElementToBeClickable(element);
             element.click();
+            logger.info("Element '{}' has been clicked", elementName);
         } catch (Exception error) {
             ErrorHandler.logError(error, "clickElement", "Failed to click element");
             throw error;

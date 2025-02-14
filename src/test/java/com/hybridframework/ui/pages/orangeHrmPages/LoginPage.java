@@ -39,7 +39,7 @@ public class LoginPage extends TestBase {
 
     public void clickLoginButton() {
         try{
-            clickElement(driver.findElement(loginButton));
+            clickElement(driver.findElement(loginButton), "Login Button");
         } catch (Exception error){
             ErrorHandler.logError(error, "clickLoginButton", "Failed to click login button");
             throw error;
@@ -57,7 +57,7 @@ public class LoginPage extends TestBase {
 
     public void clickCompanyLogo(){
         try{
-            clickElement(driver.findElement(companyLogo));
+            clickElement(driver.findElement(companyLogo), "Company Logo");
         } catch (Exception error){
             ErrorHandler.logError(error, "clickCompanyLogo", "Failed to click company logo");
             throw error;
