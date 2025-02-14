@@ -1,6 +1,3 @@
-
----
-
 # Hybrid-Test-Automation-Framework
 
 A comprehensive test automation framework that combines **Selenium WebDriver for UI testing** and **REST Assured for API testing**, featuring robust **configuration management**, **centralized logging**, and **utility functions** for enhanced efficiency.
@@ -91,35 +88,6 @@ src/
 - **Log4j2 implementation** for structured logging
 - **Custom LoggerUtils** for enhanced logging management
 
-## 🛠️ Technical Components
-
-### Base Classes
-- **`TestBase`**: Core test class handling **setup & teardown**
-- **`BasePage`**: Provides reusable UI interaction methods (click, sendKeys, etc.)
-- **`BaseUtils`**: Handles **configuration loading** and **test data initialization**
-
-### Driver Management
-- **`BrowserFactory`**: Handles browser instance creation
-- **`DriverFactory`**: Manages **WebDriver lifecycle**
-- **`BrowserOptionsUtils`**: Customizes browser configurations
-- **`SeleniumGridFactory`**: Supports **remote execution**
-
-### API Testing
-- **`core/RestClient`**: Manages API requests
-- **`endpoints`**: Stores API routes & request endpoints
-- **`payload`**: Stores JSON request bodies
-
-### Test Data Management
-- **`TestContextStore`**: Thread-safe data storage for test execution
-- **`TestContextIds`**: Ensures unique test execution identifiers
-- **`JsonConverter`**: Converts API response data into structured objects
-- **`JsonReader`**: Reads JSON test data files
-
-### Wait Utilities
-- **`ExplicitWaitUtils`**: Handles **conditional waiting**
-- **`FluentWaitUtils`**: Provides **advanced polling strategies**
-- **`ImplicitWaitUtils`**: Manages **default waits**
-
 ## 🔧 Setup & Configuration
 
 1. **Clone the repository:**
@@ -142,41 +110,18 @@ src/
 - **Selenium WebDriver**
 - **TestNG**
 
-## ▶️ Running Tests
+## ▶️ Running  🔑 Crypto & Sanity Tests
 
+### Run Crypto Test for Secret Key Generation & Credential Encryption:
 ```bash
-# Run all tests
-mvn clean test
+mvn clean test -Denv=crypto -DskipBrowserSetup=true
+```
+*Ensure `skipBrowserSetup=true` to prevent WebDriver initialization.*
 
-# Run specific test class
-mvn clean test -Dtest=TestClassName
-
-# Run with specific suite
-mvn clean test -DsuiteXmlFile=testng.xml
-```  
-
-## 📌 Configuration Loading Example
-
-```java
-public static void loadConfigurations(){
-    try {
-        // Load Global Config
-        PropertiesConfigManager.loadConfiguration(
-            PropertiesFileAlias.GLOBAL.getConfigurationAlias(),
-            PropertiesFilePath.GLOBAL.getPropertiesFilePath()
-        );
-
-        // Load UAT Config
-        PropertiesConfigManager.loadConfiguration(
-            PropertiesFileAlias.UAT.getConfigurationAlias(),
-            PropertiesFilePath.UAT.getPropertiesFilePath()
-        );
-    } catch (Exception error) {
-        ErrorHandler.logError(error, "loadConfigurations", "Failed to load configurations");
-        throw error;
-    }
-}
-```  
+### Run Sanity Tests:
+```bash
+mvn clean test -Denv=uat
+```
 
 ## 🤝 Contributing
 
@@ -195,4 +140,58 @@ public static void loadConfigurations(){
    ```  
 5. **Create a Pull Request**
 
----
+## 🔧 Maven Profiles Setup
+
+The framework includes **Maven Profiles** for better test execution control:
+
+```xml
+<profiles>
+    <profile>
+        <id>sanity</id>
+        <activation>
+            <property>
+                <name>env</name>
+                <value>uat</value>
+            </property>
+        </activation>
+        <build>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <configuration>
+                        <groups>sanity</groups>
+                        <suiteXmlFiles>
+                            <suiteXmlFile>sanity-runner.xml</suiteXmlFile>
+                        </suiteXmlFiles>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </build>
+    </profile>
+
+    <profile>
+        <id>encryption</id>
+        <activation>
+            <property>
+                <name>env</name>
+                <value>crypto</value>
+            </property>
+        </activation>
+        <build>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <configuration>
+                        <groups>encryption</groups>
+                        <suiteXmlFiles>
+                            <suiteXmlFile>encryption-runner.xml</suiteXmlFile>
+                        </suiteXmlFiles>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </build>
+    </profile>
+</profiles>
+```
